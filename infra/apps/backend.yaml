@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deno-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: deno-app
+  template:
+    metadata:
+      labels:
+        app: deno-app
+      annotations:
+        restartTimestamp: "2025-09-17T11:46:00Z"
+    spec:
+      # init container để kiểm tra package download
+      # initContainers:
+      #   - name: init-download
+      #     image: denoland/deno:2.5.0
+      #     command:
+      #       [
+      #         "sh",
+      #         "-c",
+      #         "deno info npm:@aws-sdk/client-s3@^3.888.0 && deno info npm:hono@^4.9.4",
+      #       ]
+      #     # nếu script exit non-zero, init container fail -> pod không chạy chính
+      containers:
+        - name: deno
+          image: minhfullerton/deno-app:1.0.4
+          command:
+            [
+              "deno",
+              "run",
+              "--allow-net",
+              "--allow-env",
+              "--allow-read",
+              "--allow-write",
+              "--allow-sys",
+              "app.ts",
+            ]
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          # livenessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: 5000
+          #   initialDelaySeconds: 20
+          #   periodSeconds: 10
+          #   failureThreshold: 3
+          env:
+            - name: APP_NAME
+              value: "import-service"
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: minio-access-key
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: minio-secret-key
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: rabbitmq-user
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: rabbitmq-pass
+            - name: MINIO_ENDPOINT
+              value: "minio:9000"
+            - name: MINIO_BUCKET
+              value: "test"
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: RABBITMQ_PORT
+              value: "5672"
+          ports:
+            - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deno-app
+spec:
+  selector:
+    app: deno-app
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 5000 # service port
+      targetPort: 5000 # container port

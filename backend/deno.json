@@ -1,0 +1,11 @@
+{
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "start": "deno run app.ts",
+    "dev": "deno run --allow-net --allow-env --allow-read --allow-write --allow-sys app.ts"
+  },
+  "imports": {
+    "@aws-sdk/client-s3": "npm:@aws-sdk/client-s3@^3.888.0",
+    "hono": "npm:hono@^4.9.4"
+  }
+}

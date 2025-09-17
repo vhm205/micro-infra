@@ -1,0 +1,24 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: rabbitmq-route
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`rabbitui.local`)
+      kind: Rule
+      services:
+        - name: rabbitmq
+          port: 15672
+      # middlewares:
+      #   - name: rabbit-ratelimit
+# ---
+# apiVersion: traefik.io/v1alpha1
+# kind: Middleware
+# metadata:
+#   name: rabbit-ratelimit
+# spec:
+#   rateLimit:
+#     average: 3 # chỉ 3 requests/second
+#     burst: 5

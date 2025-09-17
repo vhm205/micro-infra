@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+      annotations:
+        restartTimestamp: "2025-09-17T15:59:00Z"
+    spec:
+      containers:
+        - name: minio
+          image: minio/minio
+          ports:
+            - containerPort: 9000
+            - containerPort: 9001
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: minio-access-key
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: minio-secret-key
+            - name: MINIO_SERVER_URL
+              value: "http://127.0.0.1:9000"
+          command: ["server", "--console-address", ":9001"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+spec:
+  ports:
+    - port: 9000
+      name: minio # S3 API port
+    - port: 9001
+      name: console # MinIO Console port
+  selector:
+    app: minio
