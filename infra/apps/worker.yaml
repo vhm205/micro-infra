@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golang-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: golang-worker
+  template:
+    metadata:
+      labels:
+        app: golang-worker
+      annotations:
+        restartTimestamp: "2025-09-19T11:57:00Z"
+    spec:
+      containers:
+        - name: worker
+          image: minhfullerton/go-worker:1.0.0
+          imagePullPolicy: Always
+          env:
+            - name: RABBIT_MQ_URL
+              value: "amqp://guest:guest@rabbitmq:5672/"
+            - name: MINIO_ENDPOINT
+              value: "minio:9000"
+            - name: MINIO_BUCKET_NAME
+              value: "test"
+            - name: MYSQL_HOST
+              value: "mysql"
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_DBNAME
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: mysql-db-name
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: mysql-user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: mysql-pass
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: minio-access-key
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: common-secret
+                  key: minio-secret-key

@@ -1,0 +1,14 @@
+# ignore VCS and editor files
+.git
+.gitignore
+.vscode
+.idea
+
+# build artifacts
+bin
+dist
+*.log
+
+# go
+vendor/
+

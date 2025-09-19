@@ -4,21 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"worker-service/db"
 	"worker-service/jobs"
 	minio "worker-service/pkg"
 	"worker-service/queue"
 	log "worker-service/utils"
 	"worker-service/worker"
-
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 var rabbitClient *queue.RabbitMQClient
 
 func main() {
-	err := godotenv.Load()
-	log.FailOnError(err, "Failed to load .env file")
+	// err := godotenv.Load()
+	// log.FailOnError(err, "Failed to load .env file")
+	fmt.Println(os.Getenv("RABBIT_MQ_URL"))
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -39,10 +40,10 @@ func main() {
 
 	// Init Minio
 	minio := &minio.MinioClient{
-		Endpoint:   "localhost:9000",
-		AccessKey:  "minioadmin",
-		SecretKey:  "minioadmin",
-		BucketName: "test",
+		Endpoint:   os.Getenv("MINIO_ENDPOINT"),
+		AccessKey:  os.Getenv("MINIO_ACCESS_KEY"),
+		SecretKey:  os.Getenv("MINIO_SECRET_KEY"),
+		BucketName: os.Getenv("MINIO_BUCKET_NAME"),
 	}
 	minio.Connect()
 
@@ -53,7 +54,7 @@ func main() {
 
 	// Init RabbitMQ
 	rabbitClient = &queue.RabbitMQClient{
-		URL: "amqp://guest:guest@localhost:5672",
+		URL: os.Getenv("RABBIT_MQ_URL"),
 	}
 	rabbitClient.Connect()
 	defer rabbitClient.CloseConnection()

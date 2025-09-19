@@ -27,7 +27,7 @@ spec:
       #     # nếu script exit non-zero, init container fail -> pod không chạy chính
       containers:
         - name: deno
-          image: minhfullerton/deno-app:1.0.4
+          image: minhfullerton/deno-app:1.0.5
           command:
             [
               "deno",

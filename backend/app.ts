@@ -60,7 +60,22 @@ async function connectToRabbitMQ() {
 
 const connection = await (async () => {
   try {
-    return await connectToRabbitMQ();
+    const conn = await connectToRabbitMQ();
+
+    const channel = await conn.openChannel();
+    channels.push(channel);
+
+    await channel.declareQueue({
+      queue: "product-service",
+      durable: true,
+    });
+    await channel.bindQueue({
+      queue: "product-service",
+      exchange: "amq.direct",
+      routingKey: "product.import",
+    });
+
+    return conn;
   } catch (error) {
     console.error("RabbitMQ connection failed", error);
     return null;
@@ -76,16 +91,6 @@ const getChannel = async () => {
 
   const channel = await connection.openChannel();
   channels.push(channel);
-
-  await channel.declareQueue({
-    queue: "product-service",
-    durable: true,
-  });
-  await channel.bindQueue({
-    queue: "product-service",
-    exchange: "amq.direct",
-    routingKey: "product.import",
-  });
 
   return channel;
 };
